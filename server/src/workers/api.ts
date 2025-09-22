@@ -60,7 +60,8 @@ async function bootstrap() {
   app.use(app.get(ApiService).ssr(excludePaths));
   app.use(compression());
 
-  const server = await (host ? app.listen(port, host) : app.listen(port));
+  const listenPort = process.env.PORT || port;
+  const server = await (host ? app.listen(listenPort, host) : app.listen(listenPort));
   server.requestTimeout = 24 * 60 * 60 * 1000;
 
   logger.log(`Immich Server is listening on ${await app.getUrl()} [v${serverVersion}] [${environment}] `);
