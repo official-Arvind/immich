@@ -1,9 +1,9 @@
 FROM ghcr.io/immich-app/base-server-dev:202509210934@sha256:b5ce2d7eaf379d4cf15efd4bab180d8afc8a80d20b36c9800f4091aca6ae267e AS builder
-ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
-  CI=1 \
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \\\
+  CI=1 \\\
   COREPACK_HOME=/tmp
 
-RUN npm install --global corepack@latest && \
+RUN npm install --global corepack@latest && \\\
   corepack enable pnpm
 
 FROM builder AS server
@@ -11,7 +11,7 @@ FROM builder AS server
 WORKDIR /usr/src/app
 COPY ./package* ./pnpm* .pnpmfile.cjs ./
 COPY ./server ./server/
-RUN SHARP_IGNORE_GLOBAL_LIBVIPS=true pnpm --filter immich --frozen-lockfile build && \
+RUN SHARP_IGNORE_GLOBAL_LIBVIPS=true pnpm --filter immich --frozen-lockfile build && \\\
   SHARP_FORCE_GLOBAL_LIBVIPS=true pnpm --filter immich --frozen-lockfile --prod --no-optional deploy /output/server-pruned
 
 FROM builder AS web
@@ -21,7 +21,7 @@ COPY ./package* ./pnpm* .pnpmfile.cjs ./
 COPY ./web ./web/
 COPY ./i18n ./i18n/
 COPY ./open-api ./open-api/
-RUN SHARP_IGNORE_GLOBAL_LIBVIPS=true pnpm --filter @immich/sdk --filter immich-web --frozen-lockfile --force install && \
+RUN SHARP_IGNORE_GLOBAL_LIBVIPS=true pnpm --filter @immich/sdk --filter immich-web --frozen-lockfile --force install && \\\
   pnpm --filter @immich/sdk --filter immich-web build
 
 FROM builder AS cli
@@ -29,15 +29,15 @@ FROM builder AS cli
 COPY ./package* ./pnpm* .pnpmfile.cjs ./
 COPY ./cli ./cli/
 COPY ./open-api ./open-api/
-RUN pnpm --filter @immich/sdk --filter @immich/cli --frozen-lockfile install && \
-  pnpm --filter @immich/sdk --filter @immich/cli build && \
+RUN pnpm --filter @immich/sdk --filter @immich/cli --frozen-lockfile install && \\\
+  pnpm --filter @immich/sdk --filter @immich/cli build && \\\
   pnpm --filter @immich/cli --prod --no-optional deploy /output/cli-pruned
 
 FROM ghcr.io/immich-app/base-server-prod:202509210934@sha256:0c7eacf0ba88ca52e1a267cfc62d20d07792ea2c604818c2cbd37dc7dcefdac9
 
 WORKDIR /usr/src/app
-ENV NODE_ENV=production \
-  NVIDIA_DRIVER_CAPABILITIES=all \
+ENV NODE_ENV=production \\\
+  NVIDIA_DRIVER_CAPABILITIES=all \\\
   NVIDIA_VISIBLE_DEVICES=all
 
 COPY --from=server /output/server-pruned ./server
@@ -67,6 +67,6 @@ ENV IMMICH_SOURCE_URL=https://github.com/immich-app/immich/commit/${BUILD_SOURCE
 VOLUME /data
 EXPOSE 2283
 ENTRYPOINT ["tini", "--", "/bin/bash", "-c"]
-CMD ["start.sh"]
+CMD ["server/bin/start.sh"]
 
 HEALTHCHECK CMD immich-healthcheck
