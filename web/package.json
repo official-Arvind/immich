@@ -23,7 +23,7 @@
     "test": "vitest --run",
     "test:cov": "vitest --coverage",
     "test:watch": "vitest dev",
-    "prepare": "svelte-kit sync"
+    "prepare": "npx svelte-kit sync"
   },
   "dependencies": {
     "@formatjs/icu-messageformat-parser": "^2.9.8",
